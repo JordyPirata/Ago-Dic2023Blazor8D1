@@ -43,9 +43,44 @@ public static class DildoClient
         return dildos.ToArray();
     }
 
+    public static Dildo GetDildoById(int dildoId)
+    {
+        return dildos.FirstOrDefault(dildo => dildo.Id == dildoId);
+    }
+
     public static void AddDildo(Dildo dildo)
     {
         dildo.Id = dildos.Max(dildo => dildo.Id) + 1;
         dildos.Add(dildo);
     }
+
+    public static void UpdateDildo(Dildo updatedDildo)
+    {
+        var existingDildo = dildos.FirstOrDefault(dildo => dildo.Id == updatedDildo.Id);
+
+        if (existingDildo != null)
+        {
+            existingDildo.Name = updatedDildo.Name;
+            existingDildo.Price = updatedDildo.Price;
+            existingDildo.Size = updatedDildo.Size;
+            existingDildo.ExpireDate = updatedDildo.ExpireDate;
+            existingDildo.Material = updatedDildo.Material;
+            existingDildo.Color = updatedDildo.Color;
+            existingDildo.Stock = updatedDildo.Stock;
+        }
+        else
+        {
+            throw new ArgumentException("Dildo Not Found");
+        }
+    }
+
+    public static void RemoveDildo(int dildoId)
+    {
+        var dildoToRemove = dildos.FirstOrDefault(dildo => dildo.Id == dildoId);
+        if (dildoToRemove != null)
+        {
+            dildos.Remove(dildoToRemove);
+        }
+    }
+
 }
