@@ -1,15 +1,21 @@
-﻿@page "/edit/dildo/{dildoId:int}"
+﻿@page "/dildo"
+@page "/dildo/{id:int}"
 @using Models
 @using Data
 @inject NavigationManager NavigationManager
 
 <PageTitle>Edit Dildo</PageTitle>
 <h1>Dildo Catalog</h1>
-<h3>Edit Dildo</h3>
-
-<div class="row">
+<h3>@title</h3>
+@if (dildo is null)
+{
+    <p><em>Loading ...</em></p>
+}
+else
+{
+    <div class="row">
     <div class="col-sm-4">
-        <EditForm Model="@dildo" class="mb-5" OnValidSubmit="@HandleSubmit">
+        <EditForm Model="@dildo" class="mb-5" OnValidSubmit="HandleSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
             <div class="mb-3">
@@ -31,7 +37,7 @@
             <div class="mb-3">
                 <label for="material" class="form-label">Material :</label>
                 <InputSelect id="material" @bind-Value="dildo.Material" class="form-select">
-                    <option value="" selected="selected">Selecciona el material</option>
+                    <option value="default" selected="selected">Selecciona el material</option>
                     <option value="Plastico">Plastico</option>
                     <option value="Metal">Metal</option>
                     <option value="Madera">Madera</option>
@@ -41,36 +47,69 @@
             </div>
             <div class="mb-3">
                 <label for="color" class="form-label">Color :</label>
-                <InputSelect id="color" @bind-Value="dildo.Color" class="form-select">
-                    <option value="" selected="selected">Selecciona el color</option>
-                    <option value="Rojo">Rojo</option>
-                    <option value="Morado">Morado</option>
-                    <option value="Blanco">Blanco</option>
-                    <option value="Negro">Negro</option>
-                </InputSelect>
+                <InputText id="color" @bind-Value="dildo.Color" class="form-control"></InputText>
             </div>
             <div class="mb-3">
                 <label for="stock" class="form-label">Stock :</label>
                 <InputNumber id="stock" @bind-Value="dildo.Stock" class="form-control"></InputNumber>
             </div>
-            <button type="Submit" class="btn btn-primary" @onclick="HandleSubmit">Save</button>
-            <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+            <button type="Submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+
         </EditForm>
     </div>
 </div>
+}
 
 @code {
-    [Parameter] public int dildoId { get; set; }
-    private Dildo dildo;
-
-    protected override void OnInitialized()
+    [Parameter]
+    public int? Id { get; set; }
+    private Dildo? dildo;
+    private string title = string.Empty;
+    protected override void OnParametersSet()
     {
-        dildo = DildoClient.GetDildoById(dildoId);
+        if (Id is not null)
+        {
+            Dildo foundDildo = DildoClient.GetDildo(Id.Value);
+            dildo = new()
+                {
+                    Id = foundDildo.Id,
+                    Name = foundDildo.Name,
+                    Price = foundDildo.Price,
+                    Size = foundDildo.Size,
+                    ExpireDate = foundDildo.ExpireDate,
+                    Material = foundDildo.Material,
+                    Color = foundDildo.Color,
+                    Stock = foundDildo.Stock
+                };
+                title = $"Edit {dildo!.Name}";
+        }
+        else
+        {
+            title = "New Dildo";
+            dildo = new()
+                {
+                    Name = String.Empty,
+                    Price = 0.0M,
+                    Size = 0.0M,
+                    ExpireDate = DateTime.UtcNow,
+                    Material = String.Empty,
+                    Color = String.Empty,
+                    Stock = 0
+                };
+        }
     }
 
     private void HandleSubmit()
     {
-        DildoClient.UpdateDildo(dildo);
+        if (dildo!.Id == 0)
+        {
+            DildoClient.AddDildo(dildo);
+        }
+        else
+        {
+            DildoClient.UpdateDildo(dildo);
+        }
         NavigationManager.NavigateTo("/");
     }
 
